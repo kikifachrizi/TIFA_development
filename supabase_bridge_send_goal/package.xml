@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>supabase_bridge_send_goal</name>
+  <version>0.1.0</version>
+  <description>Fetch goal from Supabase (Postgres) and send to Nav2 NavigateToPose</description>
+  <maintainer email="you@example.com">you</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav2_msgs</depend>
+
+  <exec_depend>libpq-dev</exec_depend>
+</package>

@@ -1,8 +1,0 @@
-prefix=/home/tifa/build/devel
-
-Name: tifa_control
-Description: Description of tifa_control
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

@@ -1,0 +1,174 @@
+import math 
+import time
+import rospy
+import serial
+from geometry_msgs.msg import PoseStamped, Twist
+from tf.transformations import euler_from_quaternion
+from std_msgs.msg import String
+from simple_pid import PID
+
+ser = serial.Serial('/dev/ttyUSB1', 57600, timeout=1)  # Sesuaikan dengan port dan baudrate Anda
+setpoints = [
+    {"x": 0.0, "y": 0.0, "th": 0.0},  # Home
+    {"x": 1.1, "y": 0.0, "th": 0.0},  # Setpoint 1
+    {"x": 1.1, "y": -1.9, "th": 0.0},   # Setpoint 2
+    {"x": 3.3, "y": -1.9, "th": 0.0},
+    {
+
+]
+
+tol = {"vmaxtrans" : 10.0 , "vmaxrot" : 10.0 , "transtol" : 0.2 , "rottol" : 5.0}
+
+kp = {"x" : 2.5 ,"y" : 0.001 ,"th":0.01}
+ki = {"x" : 0.001 ,"y" : 0.001 ,"th":0.00001}
+kd = {"x" : 0.001 ,"y" : 0.001 ,"th":0.0001}
+
+output = {"x":0,"y":0,"th":0}
+pose = {"x":0,"y":0,"th":0}
+error = {"x":0,"y":0,"th":0}
+prev_err = {"x":0,"y":0,"th":0}
+p = {"x":0,"y":0,"th":0}
+i = {"x":0,"y":0,"th":0}
+d = {"x":0,"y":0,"th":0}
+twist_msg = Twist()
+
+def controller(setpoint__):
+    for ii in setpoint__:
+        error[ii] = setpoint__[ii] - pose[ii]
+
+        if ii == "th":
+            if error[ii] > 180:
+                setpoint__[ii] -= 360
+                error[ii] = setpoint__[ii] - pose[ii]
+            elif error[ii] < -180:
+                setpoint__[ii] += 360
+                error[ii] = setpoint__[ii] - pose[ii]
+
+        # print(types(i) ," = ", error[i])
+
+        p[ii] = kp[ii] * error[ii]
+        i[ii] += ki[ii]*error[ii]
+        d[ii] = kd[ii]* (error[ii] - prev_err[ii])
+
+        prev_err[ii] = error[ii]
+        if ii == "th":
+            if i[ii] > tol["vmaxrot"]:
+                i[ii] = tol["vmaxrot"]
+            elif i[ii] < -tol["vmaxrot"]:
+                i[ii] = -tol["vmaxrot"]
+        else:
+            if i[ii] > tol["vmaxtrans"]:
+                i[ii] = tol["vmaxtrans"]
+            elif i[ii] < -tol["vmaxtrans"]:
+                i[ii] = -tol["vmaxtrans"]
+
+
+        output[ii] = p[ii] + i[ii] + d[ii]
+
+        if ii == "th":
+            if output[ii] > tol["vmaxrot"]:
+                output[ii] = tol["vmaxrot"]
+            elif output[ii] < -tol["vmaxrot"]:
+                output[ii] = -tol["vmaxrot"]
+        else:
+            if output[ii] > tol["vmaxtrans"]:
+                output[ii] = tol["vmaxtrans"]
+            elif output[ii] < -tol["vmaxtrans"]:
+                output[ii] = -tol["vmaxtrans"]
+
+    #pid end
+
+    twist_msg.linear.x = output["x"]
+    twist_msg.linear.y = output["y"]
+    twist_msg.linear.z = output["th"]
+
+    if (abs(pose["x"] - setpoint__["x"]) < tol["transtol"] and 
+        abs(pose["y"] - setpoint__["y"]) < tol["transtol"] and 
+        abs(pose["th"] - setpoint__["th"]) < tol["rottol"]):
+        return 1
+
+    return 0
+
+
+
+
+current_setpoint_index = 0
+processing_setpoint = False
+def callback(msg):
+    global current_setpoint_index, processing_setpoint
+    x = msg.pose.position.x #current post x
+    y = msg.pose.position.y #current post y
+    orientation_q = msg.pose.orientation
+    
+    (roll, pitch, yaw) = euler_from_quaternion([orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w])
+    yaw_deg = yaw * 180.0 / 3.141592653589793 #current orientation
+    
+    #pid start
+    pose["x"] = x
+    pose["y"] = -1*y
+    pose["th"] = -1*yaw_deg
+
+    # controller(setpoints[0])
+    # Iterate through setpoints
+    # controller(setpoint_1)
+
+ # Pastikan controller hanya memproses satu setpoint pada satu waktu
+    if current_setpoint_index < len(setpoints):
+        if not processing_setpoint:
+            rospy.loginfo("Memulai setpoint %d", current_setpoint_index)
+            processing_setpoint = True  # Tandai bahwa robot sedang memproses setpoint
+
+        # Jalankan controller untuk setpoint saat ini
+        setpoint_reached = controller(setpoints[current_setpoint_index])
+
+        # Jika setpoint tercapai, pindah ke setpoint berikutnya
+        if setpoint_reached:
+            rospy.loginfo("Setpoint %d tercapai", current_setpoint_index)
+            current_setpoint_index += 1
+            processing_setpoint = False  # Reset status untuk setpoint berikutnya
+
+    # Jika semua setpoints selesai, hentikan robot
+    if current_setpoint_index >= len(setpoints):
+        rospy.loginfo("Semua setpoints telah tercapai")
+        twist_msg.linear.x = 0
+        twist_msg.linear.y = 0
+        twist_msg.linear.z = 0
+
+
+    message = f"{round(twist_msg.linear.x, 2)};{round(twist_msg.linear.y,2)};{round(twist_msg.linear.z,2)};\n"
+    # print(round(pose["x"],2),round(pose["y"],2),round(pose["th"],2))
+
+    # rospy.loginfo("X: %.2f, Y: %.2f ,Yaw : %.2f | control X: %.2f, control Y: %.2f, control theta: %.2f", x, y,yaw_deg, output["x"],output["y"],output["th"])
+    rospy.loginfo("err_X: %.2f , err_Y: %.2f , err_th: %.2f | act X: %.2f , act Y: %.2f ,act th: %.2f", error["x"],error["y"],error["th"],pose["x"],pose["y"],pose["th"])
+
+    # rospy.loginfo("err_x: %.2f | act x: %.2f | sp_x: %.2f | output_x: %.2f", error["x"],pose["x"],setpoint_["x"],output["x"])
+    # rospy.loginfo("err_y: %.2f | act y: %.2f | sp_y: %.2f | output_y: %.2f", error["y"],pose["y"],setpoint_["y"],output["y"])
+    # rospy.loginfo("err_th: %.2f | act th: %.2f | sp_th: %.2f | output_th: %.2f", error["th"],pose["th"],setpoint_["th"],output["th"])
+
+    new_data_odom = (
+        "data odom : x =%.2f , y =%.2f ,theta = %.2f | PID : x=%.2f , y =%.2f ,theta = %.2f" % (
+            x, y,yaw_deg, round(twist_msg.linear.x, 2),round(twist_msg.linear.y, 2),round(twist_msg.linear.z, 2)
+        )
+    ) #data yang di publish ke topics
+
+    linear_data = (
+        "Velocity : Vx = %.2f, Vy = %.2f, Vth = %.2f" % (
+            twist_msg.linear.x , twist_msg.linear.y , twist_msg.linear.z
+        )
+    )
+
+    odom_pub.publish(new_data_odom) #publish process
+    linear_pub.publish(linear_data)
+
+    ser.write(message.encode('utf-8'))
+
+if __name__ == '__main__':
+    rospy.init_node('odometry', anonymous=True)
+    
+    odom_pub = rospy.Publisher("new_data_odom", String, queue_size=10)
+    linear_pub = rospy.Publisher("linear_data", String, queue_size=10)
+
+    rospy.Subscriber('/slam_out_pose', PoseStamped, callback)
+    rospy.spin()
+
+

@@ -1,0 +1,10 @@
+<launch>
+  <!-- Jalankan RPLidar -->
+  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
+
+  <!-- Jalankan Hector SLAM -->
+  <include file="$(find hector_slam_launch)/launch/tutorial.launch" />
+
+  <!-- Jalankan explore_lite -->
+  <include file="$(find auto_mapping)/launch/explore.launch" />
+</launch>

@@ -1,0 +1,19 @@
+=== TUTORIAL SAVE GAMBAR HASIL MAPPING	===
+
+#Pastikan Sudah Mendownload Package Hector Slam dan RPLiDAR ROS, jika belum download di https://github.com/NickL77/RPLidar_Hector_SLAM dan dibaca dokumentasinya
+
+#Jalankan Node RPLiDAR ROS
+roslaunch rplidar_ros rplidar.laucnh
+
+#Jalankan Node SLAM (disini menggunakan Hector SLAM)
+roslaunch hector_slam_launch tutorial.launch
+
+#Menyimpan Map yang berada di RVIZ
+rosrun map_server map_saver -f ~/map #akan tersimpan map dengan nama map.yaml dan map.pgm
+
+#Mengubah Map menjadi PNG
+convert map.pgm map_convert.png
+
+#Untuk memotong foto persis ditengah
+convert map.pgm -gravity center -crop 750x500+80+0 +repage cropped_map.png
+

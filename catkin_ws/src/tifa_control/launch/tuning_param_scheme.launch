@@ -1,0 +1,5 @@
+<launch>
+    <node name="roscore" pkg="rosout" type="rosout" required="true"/>
+    <!-- <node name="manual_control" pkg="tifa_control" type="manual_control" output="screen"/> -->
+    <node name="turtle_teleop_key" pkg="turtlesim" type="turtle_teleop_key" output="screen"/>
+</launch>

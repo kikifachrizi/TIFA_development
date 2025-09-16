@@ -1,0 +1,3 @@
+<launch>
+    <node name="voxel_filter_node" pkg="project_code" type="voxel_filter_node" output="screen" />
+</launch>

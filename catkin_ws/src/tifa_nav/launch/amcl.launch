@@ -1,0 +1,15 @@
+<launch>
+  <!-- AMCL Node -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <param name="scan_topic" value="/scan"/>
+    <param name="odom_frame_id" value="odom"/>  <!-- Ganti slam_out_pose ke odom -->
+    <param name="map_frame_id" value="map"/>
+    <param name="base_frame_id" value="base_link"/>
+    <param name="transform_tolerance" value="0.2"/>
+  </node>
+
+  <!-- Static Transform Publisher -->
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 mapa odom 100"/> <!-- Ganti slam_out_pose ke odom -->
+
+  <node pkg="tf" type="static_transform_publisher" name="odom_to_base_link" args="0 0 0 0 0 0 odom base_link 100"/> <!-- Ganti slam_out_pose ke odom -->
+</launch>

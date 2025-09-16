@@ -1,0 +1,14 @@
+<launch>
+    <!-- Load the map file -->
+    <param name="map_file" value="$(find my_package)/home/zen/my_map11.yaml" />
+
+    <!-- Launch AMCL -->
+    <node pkg="amcl" type="amcl" name="amcl" output="screen">
+        <param name="scan_topic" value="/scan" />
+        <param name="min_particles" value="500" />
+        <param name="max_particles" value="2000" />
+        <param name="odom_frame_id" value="odom" />
+        <param name="base_frame_id" value="base_link" />
+        <!-- Tambahkan parameter lainnya sesuai kebutuhan -->
+    </node>
+</launch>

@@ -1,0 +1,8 @@
+<launch>
+    <!-- Menjalankan RPLIDAR -->
+    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+
+    <!-- Menjalankan Hector SLAM -->
+    <include file="$(find hector_slam_launch)/launch/tutorial.launch"/>
+    <node pkg="pid_proccess" type="odometry2.py" name="odometry" output="screen"/>
+</launch>

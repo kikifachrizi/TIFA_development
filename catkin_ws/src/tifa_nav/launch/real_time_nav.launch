@@ -1,0 +1,5 @@
+<launch>
+    <!-- <include file="$(find tifa_control)/launch/ultrasonic.launch"></include> -->
+    <include file="$(find rplidar_ros)/launch/rplidar_c1.launch"></include>
+    <include file="$(find hector_slam_launch)/launch/tutorial.launch"></include>
+</launch>

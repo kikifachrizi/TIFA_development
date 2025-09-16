@@ -1,0 +1,7 @@
+<launch>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_filter_node" clear_params="true" output="screen">
+    <param name="use_sim_time" value="false" />
+    <rosparam command="load" file="$(find tifa_nav)/config/ekf.yaml"/>
+
+  </node>
+</launch>

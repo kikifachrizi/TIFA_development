@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+import math
+import time
+import rospy
+import tf2_ros
+import tf2_geometry_msgs
+from tf.transformations import euler_from_quaternion
+from geometry_msgs.msg import PoseStamped, PointStamped, Twist
+from std_msgs.msg import String
+from simple_pid import PID  # Pustaka PID
+
+ # Target posisi yang ingin dicapai dalam frame global
+target_position = {"x": 0.5, "y": 0.0, "z": 0.0}
+
+# Inisialisasi PID untuk setiap sumbu
+pid_x = PID(Kp=1.5, Ki=0.001, Kd=0.01, setpoint=target_position["x"])
+pid_y = PID(Kp=2.0, Ki=0.001, Kd=0.01, setpoint=target_position["y"])
+pid_z = PID(Kp=1.0, Ki=0.001, Kd=0.01, setpoint=target_position["z"])
+
+# Callback untuk menerima data dari /slam_out_pose
+def poseupdate_callback(msg):
+    try:
+        # Ambil posisi (x, y, z) dari pesan dalam frame global (misalnya 'map')
+        position_global = PointStamped()
+#        print(position_global)
+        position_global.header.frame_id = "map"  # Asumsikan frame global adalah 'map'
+        position_global.header.stamp = rospy.Time(0)  # Gunakan transformasi waktu terbaru
+        position_global.point = msg.pose.position
+        yaw = msg.pose.orientation
+        x, y, z = euler_from_quaternion([yaw.x, yaw.y, yaw.z, yaw.w])
+        z = math.degrees(z)
+
+#        time.sleep(0.1)
+        # Hitung error menggunakan PID dalam frame global (berdasarkan posisi global robot)
+        control_x = pid_x(position_global.point.x)
+        control_y = pid_y(position_global.point.y)
+        control_z = pid_z(z) #position_global.point.z)
+#        print(position_global.point.x, control_x)
+
+        # Konversi posisi global robot ke frame base_link menggunakan TF2
+        position_local = tf_buffer.transform(position_global, "base_link", rospy.Duration(1.0))
+
+        # Output kontrol PID akan diubah ke kecepatan linear robot (misalnya untuk kontrol kecepatan)
+        twist_msg = Twist()
+        twist_msg.linear.x = control_x  # Kecepatan linear di sumbu x
+        twist_msg.linear.y = control_y  # Kecepatan linear di sumbu y
+        twist_msg.linear.z = control_z  # Kecepatan linear di sumbu z
+        print(position_global.point.x, control_x, twist_msg.linear.x)
+        # Data yang diproses dengan kontrol PID (menggunakan posisi lokal untuk kontrol)
+        processed_data = (
+            "Processed PoseUpdate: local_x=%.2f, local_y=%.2f, local_z=%.2f | "
+            "Control (twist): x=%.2f, y=%.2f, z=%.2f"
+            % (position_local.point.x, position_local.point.y, position_local.point.z, control_x, control_y, 0.5)
+        )
+
+        # Publikasikan kontrol PID dalam bentuk twist (kecepatan linear)
+        processed_pub.publish(processed_data)
+        twist_pub.publish(twist_msg)
+
+        # Log posisi dan kontrol
+#        rospy.loginfo(
+ #           "Position processed (linear vel): x=%.2f, y=%.2f, z=%.2f | "
+ #           "Control: x=%.2f, y=%.2f, z=%.2f | global: x=%.2f, y=%.2f, z=%.2f",
+ #           twist_msg.linear.x,
+ #           twist_msg.linear.y,
+ #           twist_msg.linear.z,
+ #           control_x,
+ #           control_y,
+ #           control_z,
+ #           position_global.point.x,
+ #           position_global.point.y,
+ #           position_global.point.z
+ #       )
+
+    except Exception as e:
+        rospy.logwarn("Failed to transform pose: %s", str(e))
+
+# Fungsi utama
+if __name__ == "__main__":
+    # Inisialisasi node ROS
+    rospy.init_node("data_processor", anonymous=True)
+
+    # TF2 Buffer dan Listener untuk transformasi
+    tf_buffer = tf2_ros.Buffer()
+    tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+    # Publisher untuk topic processed_data dan twist
+    processed_pub = rospy.Publisher("processed_data", String, queue_size=10)
+    twist_pub = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+
+    # Subscriber untuk topic /slam_out_pose
+    rospy.Subscriber("/slam_out_pose", PoseStamped, poseupdate_callback)
+
+    # Spin untuk menjaga node tetap berjalan
+    rospy.spin()

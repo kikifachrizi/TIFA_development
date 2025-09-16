@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="deli_navigation" type="read_track.py" name="path_publisher" output="screen"/>
+    <node pkg="deli_navigation" type="robot_pose.py" name="pose_array_publisher" output="screen"/>
+    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+</launch>

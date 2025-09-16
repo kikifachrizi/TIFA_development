@@ -1,0 +1,4 @@
+<launch>
+    <node name="tifa_navigation" pkg="tifa_nav" type="tifa_navigation.py" output="screen"/>
+    <node name="get_coord" pkg="tifa_nav" type="get_coord.py" output="screen"/>
+</launch>

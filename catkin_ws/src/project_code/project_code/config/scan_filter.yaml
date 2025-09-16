@@ -1,0 +1,10 @@
+scan_filter_chain:
+  - name: range_filter
+    type: laser_filters/ScanRangeFilter
+    params:
+      lower_threshold: 0.2
+      upper_threshold: 10.0
+  - name: median_filter
+    type: laser_filters/MedianFilter
+    params:
+      window_size: 5

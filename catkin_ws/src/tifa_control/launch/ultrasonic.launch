@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="roscore" pkg="rosout" type="rosout" required="true"/>
+    <node name="ultrasonic_visualizer" pkg="tifa_control" type="ultrasonic_visualizer.py" output="screen"/>
+    <node name="serial_ultrasonic_reader" pkg="tifa_control" type="serial_ultrasonic_reader.py" output="screen"/>
+    <node name="imu_odom_serial_pub" pkg="tifa_control" type="imu_odom_serial_publisher.py" output="screen"/>
+    <node pkg="tf" type="static_transform_publisher" name="base_to_imu" args="0.38 0.15 0 0 0 0 base_link imu_link 100" />
+</launch>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- <node name="roscore" pkg="rosout" type="rosout" required="true"/> -->
+    <node name="tifa_teleop_key" pkg="tifa_control" type="tifa_teleop_key.py" output="screen"/>
+    <node name="manual_control" pkg="tifa_control" type="manual_control.py" output="screen"/>
+</launch>

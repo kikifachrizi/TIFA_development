@@ -1,0 +1,31 @@
+ekf_filter_node:
+  frequency: 30
+  sensor_timeout: 0.1
+  two_d_mode: true  # Kalau robot kamu cuma jalan di bidang datar (x, y, yaw)
+  publish_tf: true
+
+  map_frame: map
+  odom_frame: odom
+  base_link_frame: base_link
+  world_frame: odom  # Biasanya "odom" kalau belum pakai AMCL
+
+  odometry0: /odom
+  odometry0_config: [true, true, false,
+                     false, false, false,
+                     false, false, false,  # MATIKAN vx, vy
+                     false, false, false,  # MATIKAN vyaw
+                     false, false, false]
+  
+  odometry0_differential: false
+  odometry0_relative: true
+
+
+  imu0: /imu/data
+  imu0_config: [false, false, false,  # x, y, z
+                true, true, true,  # roll, pitch, yaw
+                false, false, false,  # vx, vy, vz
+                true, true, true,  # vroll, vpitch, vyaw
+                true, true, true]  # ax, ay, az
+
+  imu0_differential: false
+  imu0_relative: false

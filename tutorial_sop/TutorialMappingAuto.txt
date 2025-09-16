@@ -1,0 +1,82 @@
+===	TUTORIAL AUTO MAPPING	===
+
+#Pastikan Sudah Mendownload Package Hector Slam dan RPLiDAR ROS, jika belum download di https://github.com/NickL77/RPLidar_Hector_SLAM dan dibaca dokumentasinya
+
+#Jalankan Node RPLiDAR ROS
+roslaunch rplidar_ros rplidar.laucnh
+
+#Jalankan Node SLAM (disini menggunakan Hector SLAM)
+roslaunch hector_slam_launch tutorial.launch
+
+#Jalankan Node Move base disini kita membuat package sendiri
+#Konfigurasi File
+project_code
+-- config
+   -- costmap_params.yaml
+-- launch
+   -- move.launch
+-- cmakelists.txt
+-- package.xml	
+
+#program costmap_params.yaml
+
+global_costmap:
+  global_frame: "map"
+  robot_base_frame: "base_link"
+  update_frequency: 5.0
+  publish_frequency: 2.0
+  transform_tolerance: 0.5
+  resolution: 0.05
+  static_map: true
+
+local_costmap:
+  global_frame: "map"
+  robot_base_frame: "base_link"
+  update_frequency: 5.0
+  publish_frequency: 2.0
+  transform_tolerance: 0.5
+  resolution: 0.05
+  rolling_window: true
+  width: 3.0
+  height: 3.0
+  static_map: false
+
+costmap_common_params:
+  obstacle_range: 2.5
+  raytrace_range: 3.0
+  footprint: [[-0.2, -0.2], [-0.2, 0.2], [0.2, 0.2], [0.2, -0.2]]
+  inflation_radius: 0.5
+  obstacle_layer:
+    enabled: true
+    max_obstacle_height: 2.0
+  inflation_layer:
+    enabled: true
+
+#program move.launch
+
+<launch>
+
+    <!-- Move Base Node -->
+    <node pkg="move_base" type="move_base" name="move_base" output="screen">
+      <param name="base_global_planner" value="navfn/NavfnROS"/>
+      <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>
+      <param name="global_costmap/inflation_layer/inflation_radius" value="0.3"/>
+      <param name="local_costmap/inflation_layer/inflation_radius" value="0.3"/>
+      
+      <rosparam file="$(find project_code)/config/costmap_params.yaml" command="load" />
+      
+    </node>
+  
+  </launch>
+
+#Jalankan node move base
+roslaunch project_code move.launch
+
+#Jalankan node Frontier Exploration, bisa download di https://github.com/winwinashwin/frontier_exploration
+
+roslaunch frontier_exploration explore_costmap.launch
+
+
+# Untuk melihat jalurnya tambahkan topic navfros/plan
+# Untuk melihat Frontier (batas antara area mapping dan yang belom terbaca) tambahkan topic frontier
+

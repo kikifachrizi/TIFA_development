@@ -1,0 +1,8 @@
+prefix=/home/tifa/catkin_ws/devel
+
+Name: project_code
+Description: Description of project_code
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

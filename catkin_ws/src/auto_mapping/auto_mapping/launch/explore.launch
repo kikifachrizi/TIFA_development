@@ -1,0 +1,16 @@
+<launch>
+    <node pkg="explore_lite" type="explore" name="explore" output="screen">
+        <param name="base_frame" value="base_link" />
+        <param name="map_topic" value="/map" />
+        <param name="cmd_vel_topic" value="/cmd_vel" />
+        <param name="planner_frequency" value="1.0" />
+        <param name="progress_timeout" value="30.0" />
+        <param name="visualize_frontiers" value="true" />
+        <param name="goal_tolerance" value="0.5" />
+        <param name="min_frontier_size" value="0.5" />
+        <param name="costmap_topic" value="/move_base/global_costmap/costmap" />
+
+        <rosparam file="$(find auto_mapping)/config/explore_params.yaml" />
+
+    </node>
+</launch>

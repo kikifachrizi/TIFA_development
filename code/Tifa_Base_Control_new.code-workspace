@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../Dokumen/PlatformIO/Projects/Tifa_Base_Control"
+		},
+		{
+			"name": "read_encoder",
+			"path": "../../Dokumen/PlatformIO/Projects/read_encoder"
+		},
+		{
+			"name": "motorDC_control",
+			"path": "../../Dokumen/PlatformIO/Projects/motorDC_control"
+		}
+	],
+	"settings": {}
+}

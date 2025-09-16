@@ -1,52 +1,45 @@
-# TIFA — Autonomous Mobile Robot Platform
+# TIFA — General Overview
 
-> **General Overview & Documentation Hub** (branch `main`)  
-> Cabang ini berisi dokumentasi, proposal, dan aset administratif. Kode & eksperimen ada di branch pengembangan (`dev`, `feat/*`, `fix/*`).
-
-![Cover](assets/cover.png)
-
----
-
-## TL;DR
-
-- **TIFA** adalah platform **Autonomous Mobile Robot (AMR)** berbasis **ROS 2 Humble** di **Ubuntu 22.04** (target edge: **Raspberry Pi 4**).  
-- Stack utama: **Nav2** (navigasi), **SLAM Toolbox** (SLAM), **rplidar_ros** (LiDAR), **ros2_control** (aktuasi diff-drive), integrasi cloud/database (mis. **Supabase/PostgreSQL**) untuk pengiriman goal/telemetri.  
-- Branch ini = **dokumentasi**, bukan kode. Lihat “📦 Cabang & Struktur Repo” di bawah untuk cabang kode.
+## Peran singkat
+- **Nav2**: perencanaan global/lokal, costmap, behavior tree.
+- **SLAM Toolbox/AMCL**: estimasi pose di frame `map`.
+- **ros2_control**: terjemah `cmd_vel` ke aktuator diff-drive.
+- **Supabase/PostgreSQL (opsional)**: kirim goal & log hasil.
 
 ---
 
-## Sejarah Singkat TIFA
-
-> Ringkas & kronologis. Isi poin di bawah sesuai sejarah proyekmu.
-
-- **[Tahun/Bulan]** — *Inisiasi ide*: …  
-- **[Tahun/Bulan]** — *Prototype v0*: rangkaian diff-drive + LiDAR, teleop dasar…  
-- **[Tahun/Bulan]** — *Integrasi ROS 2 Humble*: porting paket, Nav2 bring-up…  
-- **[Tahun/Bulan]** — *Field test*: uji navigasi indoor, tuning costmap…  
-- **[Tahun/Bulan]** — *Cloud Bridge*: kirim `NavigateToPose` via Supabase (PostgreSQL/`libpq`)…  
-- **[Tahun/Bulan]** — *Roadmap ke MPC/TEB*: eksperimen controller advance…
-
-> **Highlight**: tantangan teknis yang sempat muncul (USB serial CH340/CP210x, IP dinamis RPi, dependency Gazebo/ignition, dsb) dan solusinya singkat.
+## Fitur Inti
+- 🚗 **Autonomous Navigation**: path planning & obstacle avoidance via Nav2.
+- 🗺️ **SLAM/Localization**: peta & pose konsisten (SLAM Toolbox / AMCL).
+- 🔧 **Hardware Abstraction**: `ros2_control` + driver diff-drive.
+- ☁️ **Cloud Bridge (opsional)**: dispatch tujuan navigasi & telemetri ke DB.
+- 🧠 **Advanced Control (roadmap)**: MPC/TEB untuk tracking halus & constraint-aware.
 
 ---
 
-## Arsitektur Tingkat-Tinggi
+## Lingkup Teknis (Ringkas)
 
-```mermaid
-flowchart LR
-  subgraph Robot[TIFA Robot (ROS2 Humble, Ubuntu 22.04)]
-    SENS[LiDAR / IMU / Kamera]
-    PERCEPTION[Perception<br/>Filters, LaserScan]
-    LOC[Localization/SLAM<br/>(SLAM Toolbox / AMCL)]
-    PLAN[Nav2<br/>(BT Navigator, Costmaps, Planners)]
-    CTRL[Controller<br/>(ros2_control / (opsi) MPC/TEB)]
-    ACT[Actuators<br/>Motor Driver (ttyUSB)]
-    SENS --> PERCEPTION --> LOC --> PLAN --> CTRL --> ACT
-    LOC --> PLAN
-  end
+| Komponen | Catatan |
+| --- | --- |
+| **OS / SBC** | Ubuntu 22.04 pada Raspberry Pi 4 |
+| **ROS 2** | Humble Hawksbill |
+| **Persepsi** | LiDAR via `rplidar_ros` (LaserScan) |
+| **Lokalisasi/SLAM** | `slam_toolbox` (online), atau AMCL pada peta statis |
+| **Navigasi** | **Nav2** (planner, controller, recoveries, BT Navigator) |
+| **Aktuasi** | **ros2_control** diff-drive → motor driver via USB serial (CH340/CP210x) |
+| **Cloud/DB (opsional)** | Supabase / PostgreSQL (goal queue, status) |
+| **Simulasi (opsional)** | Ignition/Gazebo + `gazebo_ros2_control` |
 
-  subgraph Cloud[Backend (opsional)]
-    DB[(Supabase / PostgreSQL)]
-  end
+---
 
-  DB <--> |Goals, Telemetry| PLAN
+## 📦 Cabang & Struktur Repo
+
+> Pisahkan **dokumen** dan **kode** untuk alur kerja yang rapi.
+
+- **`main`** — Dokumentasi (README, proposal, aset gambar, SOP).
+- **`dev`** — Integrasi pengembangan harian (kode).
+- **`feat/*`** — Fitur fokus (mis. `feat/nav2-mpc`, `feat/ros2-control`).
+- **`fix/*`** — Perbaikan bug.
+- **`docs/*`** — Dokumentasi besar/terfokus.
+
+**Direktori pada branch `main`:**

@@ -3,3 +3,6 @@
 *.bag
 *.bag.active
 *.pcap
+
+# secrets (jangan commit)
+catkin_ws/src/tifa_nav/serviceAccountKey.json
